@@ -1,0 +1,32 @@
+name: Deploy API to VM
+'on':
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm install
+      - name: Deploy to VM
+        env:
+          SSH_KEY: '${{ secrets.SSH_KEY }}'
+          HOST: '${{ secrets.HOST }}'
+          USERNAME: '${{ secrets.USERNAME }}'
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+
+          # SSH into the VM and run deployment commands
+          ssh -i ~/.ssh/id_rsa $USERNAME@$HOST << 'ENDSSH'
+            # Commands to stop the current application
+            # Commands to update the codebase
+            # Commands to install dependencies
+            # Commands to start the new application
+          ENDSSH
+   
